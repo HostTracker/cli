@@ -1,0 +1,15 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "projectTitle": "ht-cli - HostTracker command-line client",
+  "description": "The ht-cli command-line client for HostTracker: run instant website checks, manage monitors, contacts, webhooks and status pages from a terminal or a CI pipeline.",
+  "excludeFolders": [
+    "cmd/gen",
+    "internal",
+    "dist"
+  ],
+  "rules": [
+    "Install with brew install HostTracker/tap/ht-cli, go install github.com/HostTracker/cli/cmd/ht-cli@latest, or the packages in the GitHub releases.",
+    "Authenticate once with ht-cli auth login (token minted at https://www.host-tracker.com/integrations/api) or set HT_TOKEN.",
+    "Every API operation is a command grouped by family, for example ht-cli monitors list, ht-cli check run <url> --wait; add --output json for machine-readable output."
+  ]
+}
