@@ -58,9 +58,9 @@ func newConfigSetCommand(opts *htcli.Options) *cobra.Command {
 		Short: "Write one setting of the current profile",
 		Long: `Write one setting of the current profile.
 
-  ht config set base-url https://api2.host-tracker.com
-  ht config set output json
-  ht config set token "$HT_TOKEN"
+  ht-cli config set base-url https://api2.host-tracker.com
+  ht-cli config set output json
+  ht-cli config set token "$HT_TOKEN"
 
 Known keys: ` + strings.Join(config.Settable, ", ") + `.`,
 		Args: cobra.ExactArgs(2),

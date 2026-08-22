@@ -48,8 +48,8 @@ func renderDocs(root *cobra.Command) (map[string][]byte, error) {
 
 	children := visible(root)
 	var index bytes.Buffer
-	index.WriteString("# `ht` command reference\n\n")
-	index.WriteString("Generated with `ht docs`. Do not edit by hand.\n\n")
+	index.WriteString("# `ht-cli` command reference\n\n")
+	index.WriteString("Generated with `ht-cli docs`. Do not edit by hand.\n\n")
 	index.WriteString(root.Long + "\n\n")
 	index.WriteString("## Global flags\n\n")
 	index.WriteString("| Flag | Type | Description |\n|---|---|---|\n")
@@ -63,10 +63,10 @@ func renderDocs(root *cobra.Command) (map[string][]byte, error) {
 		if count == 0 {
 			count = 1
 		}
-		fmt.Fprintf(&index, "| [`ht %s`](%s) | %s | %d |\n", child.Name(), page, child.Short, count)
+		fmt.Fprintf(&index, "| [`ht-cli %s`](%s) | %s | %d |\n", child.Name(), page, child.Short, count)
 
 		var body bytes.Buffer
-		fmt.Fprintf(&body, "# `ht %s`\n\n%s\n\n", child.Name(), child.Short)
+		fmt.Fprintf(&body, "# `ht-cli %s`\n\n%s\n\n", child.Name(), child.Short)
 		if child.Long != "" && child.Long != child.Short {
 			fmt.Fprintf(&body, "%s\n\n", child.Long)
 		}

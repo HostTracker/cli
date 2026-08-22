@@ -1,29 +1,29 @@
-# `ht check`
+# `ht-cli check`
 
 Run a one-off check without creating a monitor
 
 Run a one-off check without creating a monitor.
 
 The full instant-check surface, including the catalogue of types and the
-history of past runs, is under ht instant-checks.
+history of past runs, is under ht-cli instant-checks.
 
-## `ht check run`
+## `ht-cli check run`
 
 Start an instant check, and follow it to its result
 
 ```
-ht check run <url> [flags]
+ht-cli check run <url> [flags]
 ```
 
 Start an instant check, and follow it to its result.
 
-  ht check run https://www.host-tracker.com --wait
-  ht check run example.com --type ping --country de --country us --wait
-  ht check run example.com:443 --type port --pool premium
+  ht-cli check run https://www.host-tracker.com --wait
+  ht-cli check run example.com --type ping --country de --country us --wait
+  ht-cli check run example.com:443 --type port --pool premium
 
 Without --wait the command prints the 202 receipt, whose id is what
-ht instant-checks get <db-id> <id> reads later. With --wait it polls at
-the pace the API asks for and prints the finished result.
+ht-cli instant-checks get <db-id> <id> reads later. With --wait it polls
+at the pace the API asks for and prints the finished result.
 
 --json supplies the whole request body for a shape the flags do not
 reach, and the flags then fill in what it left out.

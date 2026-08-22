@@ -48,7 +48,7 @@ The body is read from standard input (or --body-file), the headers from
 The signature is computed over the RAW body, so it must be the exact bytes
 the endpoint received: a re-serialised copy verifies against nothing.
 
-  ht webhooks verify --secret whsec_... --headers-file headers.txt < body.json
+  ht-cli webhooks verify --secret whsec_... --headers-file headers.txt < body.json
 
 An accepted signature exits 0 and prints the event; a rejected one exits 5.
 Both signature schemes the API sends are accepted, and several --secret

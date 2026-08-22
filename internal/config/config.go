@@ -1,9 +1,9 @@
 // Package config reads and writes the CLI's profile file.
 //
 // The file lives under the OS configuration directory (
-// $XDG_CONFIG_HOME/ht/config.yaml on Linux, ~/Library/Application
-// Support/ht/config.yaml on macOS, %AppData%\ht\config.yaml on Windows)
-// and is written 0600, because it holds API tokens.
+// $XDG_CONFIG_HOME/ht-cli/config.yaml on Linux, ~/Library/Application
+// Support/ht-cli/config.yaml on macOS, %AppData%\ht-cli\config.yaml on
+// Windows) and is written 0600, because it holds API tokens.
 package config
 
 import (
@@ -40,7 +40,7 @@ type File struct {
 	path string
 }
 
-// Settable is the list of keys `ht config set` accepts, in help order.
+// Settable is the list of keys `ht-cli config set` accepts, in help order.
 var Settable = []string{"token", "base-url", "output"}
 
 // Dir is the directory the configuration file lives in.
@@ -52,7 +52,7 @@ func Dir() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(base, "ht"), nil
+	return filepath.Join(base, "ht-cli"), nil
 }
 
 // Path is the full path of the configuration file.
@@ -123,7 +123,7 @@ func (f *File) FilePath() string { return f.path }
 
 // Resolve returns the named profile, or the current one when name is
 // empty. A profile that does not exist yet reads as empty, so a fresh
-// installation works before `ht auth login` has run.
+// installation works before `ht-cli auth login` has run.
 func (f *File) Resolve(name string) (string, Profile) {
 	if name == "" {
 		name = f.Current

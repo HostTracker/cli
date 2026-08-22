@@ -1,13 +1,13 @@
-# `ht reports`
+# `ht-cli reports`
 
 Report subscriptions and generated reports
 
-## `ht reports bulk-write-subscription`
+## `ht-cli reports bulk-write-subscription`
 
 Wire and unwire many report subscriptions in one transaction.
 
 ```
-ht reports bulk-write-subscription [flags]
+ht-cli reports bulk-write-subscription [flags]
 ```
 
 The report twin of the alert diff door: create[] and delete[] hold entries, each the cross product of its monitors, its contacts and its frequencies, applied in ONE transaction after the whole request validates. Set allMonitors (or allContacts) to mean every one on the account - one side only. Scheduled reports go to email contacts: an explicitly named contact of another type is refused naming it, and allContacts covers the account's email contacts. A frequency the package does not include is refused before anything is written. Both write scopes are required on every call, because the door writes on the monitor side and the contact side alike.
@@ -20,12 +20,12 @@ POST /report/bulk (bulkWriteReportSubscription)
 | `--json` | string | request body: inline JSON, @file, or - for standard input |
 | `--set` | stringArray | set one body member: --set name=api --set settings.interval=5 (repeatable) |
 
-## `ht reports delete-contact`
+## `ht-cli reports delete-contact`
 
 Remove the report subscription between this contact and one monitor.
 
 ```
-ht reports delete-contact <id> <monitor-id> [flags]
+ht-cli reports delete-contact <id> <monitor-id> [flags]
 ```
 
 The contact-side mirror of deleteMonitorReport. 404 if the pair had no subscription.
@@ -40,12 +40,12 @@ Arguments:
 |---|---|---|
 | `--idempotency-key` | string | Optional. A client-chosen key, unique per logical request. |
 
-## `ht reports delete-contact-reports`
+## `ht-cli reports delete-contact-reports`
 
 Remove ALL of this contact's report subscriptions.
 
 ```
-ht reports delete-contact-reports <id> [flags]
+ht-cli reports delete-contact-reports <id> [flags]
 ```
 
 Removes every report subscription that would send to this contact, in one call.
@@ -59,12 +59,12 @@ Arguments:
 |---|---|---|
 | `--idempotency-key` | string | Optional. A client-chosen key, unique per logical request. |
 
-## `ht reports delete-monitor`
+## `ht-cli reports delete-monitor`
 
 Remove the report subscription between this monitor and one contact.
 
 ```
-ht reports delete-monitor <monitor-id> <contact-id> [flags]
+ht-cli reports delete-monitor <monitor-id> <contact-id> [flags]
 ```
 
 Removes all frequencies for the pair. 404 if the pair had no subscription.
@@ -79,12 +79,12 @@ Arguments:
 |---|---|---|
 | `--idempotency-key` | string | Optional. A client-chosen key, unique per logical request. |
 
-## `ht reports delete-monitor-reports`
+## `ht-cli reports delete-monitor-reports`
 
 Remove ALL of this monitor's report subscriptions.
 
 ```
-ht reports delete-monitor-reports <monitor-id> [flags]
+ht-cli reports delete-monitor-reports <monitor-id> [flags]
 ```
 
 Removes every report subscription attached to this monitor in one call.
@@ -98,12 +98,12 @@ Arguments:
 |---|---|---|
 | `--idempotency-key` | string | Optional. A client-chosen key, unique per logical request. |
 
-## `ht reports generate`
+## `ht-cli reports generate`
 
 Request a report over a set of monitors and a time range.
 
 ```
-ht reports generate [flags]
+ht-cli reports generate [flags]
 ```
 
 Submits a rendering request and answers with a job id while the document is produced in the background - rendering can take a while and the service sheds load under pressure, so an inline wait would be the wrong contract. Poll the job, or name a webhook to be called when it finishes. The monitor list is explicit and required, so a report can never quietly cover the whole account. An Idempotency-Key is mandatory: this call answers 202 and then renders in the background, so a retry after a timeout would otherwise queue a second rendering of the same report. The 202 carries a Retry-After header saying how long to wait before the first poll, sized on how much work was accepted.
@@ -116,12 +116,12 @@ POST /monitor/report (generateReport)
 | `--json` | string | request body: inline JSON, @file, or - for standard input |
 | `--set` | stringArray | set one body member: --set name=api --set settings.interval=5 (repeatable) |
 
-## `ht reports get`
+## `ht-cli reports get`
 
 Get a generated report's metadata.
 
 ```
-ht reports get <id> [flags]
+ht-cli reports get <id> [flags]
 ```
 
 Returns what a report covers - its type, format, time range, monitors and expiry - without transferring the document itself. Use it to check that a report is still available, or to describe one in a list, before spending the bandwidth of a download. A report past its expiry answers not-found rather than a state value.
@@ -135,12 +135,12 @@ Arguments:
 |---|---|---|
 | `--fields` | stringSlice | Which top-level members to keep on each row - fields=id,name. (id \| type \| format \| range \| monitorIds \| sections \| sizeBytes \| expiresAt \| ... 2 more) (repeatable) |
 
-## `ht reports get-contact`
+## `ht-cli reports get-contact`
 
 Read the report subscription between this contact and one monitor.
 
 ```
-ht reports get-contact <id> <monitor-id> [flags]
+ht-cli reports get-contact <id> <monitor-id> [flags]
 ```
 
 The mirror of getMonitorReport - the same subscription addressed from the contact side.
@@ -155,12 +155,12 @@ Arguments:
 |---|---|---|
 | `--fields` | stringSlice | Which top-level members to keep on each row - fields=id,name. (monitor \| frequencies \| created) (repeatable) |
 
-## `ht reports get-content`
+## `ht-cli reports get-content`
 
 Download a generated report's rendered document.
 
 ```
-ht reports get-content <id>
+ht-cli reports get-content <id>
 ```
 
 Streams the report's bytes with a suggested filename, in the format the report was requested in. Use it after the metadata read confirms the report exists. A document that has aged out of the cache is re-rendered rather than refused, so a stored report id keeps working; a busy renderer answers with a retry hint instead of failing outright.
@@ -170,12 +170,12 @@ GET /monitor/report/{id}/content (getReportContent)
 Arguments:
   <id>	the report id
 
-## `ht reports get-monitor`
+## `ht-cli reports get-monitor`
 
 Read the report subscription between this monitor and one contact.
 
 ```
-ht reports get-monitor <monitor-id> <contact-id> [flags]
+ht-cli reports get-monitor <monitor-id> <contact-id> [flags]
 ```
 
 Returns the report-frequency set this contact receives for this monitor, or 404 if none.The contact's address is included only when the token also carries a contact read scope - a monitor-scoped token sees which contact it is, not how to reach it.
@@ -190,12 +190,12 @@ Arguments:
 |---|---|---|
 | `--fields` | stringSlice | Which top-level members to keep on each row - fields=id,name. (contact \| frequencies \| created) (repeatable) |
 
-## `ht reports get-subscription`
+## `ht-cli reports get-subscription`
 
 Read one report-subscription pair from the flat list, by its id.
 
 ```
-ht reports get-subscription <id> [flags]
+ht-cli reports get-subscription <id> [flags]
 ```
 
 Returns the same row shape as listReportSubscription for exactly one (monitor, contact) pair, addressed by the id each list row carries. 404 for an id that does not decode, does not exist, or is not the caller's on either side.
@@ -209,12 +209,12 @@ Arguments:
 |---|---|---|
 | `--fields` | stringSlice | Which top-level members to keep on each row - fields=id,name. (id \| monitor \| contact \| frequencies \| created) (repeatable) |
 
-## `ht reports list-by-contact`
+## `ht-cli reports list-by-contact`
 
 List every report subscription on the account, grouped by contact.
 
 ```
-ht reports list-by-contact [flags]
+ht-cli reports list-by-contact [flags]
 ```
 
 The same report wiring as listReportSubscription, grouped one element per contact with its subscribed monitors nested underneath. The mirror of listReportByMonitor.
@@ -243,12 +243,12 @@ One page is returned by default. --all walks every page.
 | `--query-file` | string | filter with a body query read from a file |
 | `--query` | string | filter with a body query against /report/by-contact/q: inline JSON, @file, or - |
 
-## `ht reports list-by-monitor`
+## `ht-cli reports list-by-monitor`
 
 List every report subscription on the account, grouped by monitor.
 
 ```
-ht reports list-by-monitor [flags]
+ht-cli reports list-by-monitor [flags]
 ```
 
 The same report wiring as listReportSubscription, grouped one element per monitor with its subscribed contacts nested underneath - so each monitor's identity is carried once rather than repeated for every contact. Takes the same filters as the flat list.
@@ -277,12 +277,12 @@ One page is returned by default. --all walks every page.
 | `--query-file` | string | filter with a body query read from a file |
 | `--query` | string | filter with a body query against /report/by-monitor/q: inline JSON, @file, or - |
 
-## `ht reports list-contact`
+## `ht-cli reports list-contact`
 
 List the monitors that report to this contact, with each monitor's frequency set.
 
 ```
-ht reports list-contact <id> [flags]
+ht-cli reports list-contact <id> [flags]
 ```
 
 The mirror of listMonitorReport - what reports to this contact, one row per monitor.
@@ -304,12 +304,12 @@ One page is returned by default. --all walks every page.
 | `--query-file` | string | filter with a body query read from a file |
 | `--query` | string | filter with a body query against /contact/{id}/report/q: inline JSON, @file, or - |
 
-## `ht reports list-monitor`
+## `ht-cli reports list-monitor`
 
 List the contacts this monitor reports to, with each contact's frequency set.
 
 ```
-ht reports list-monitor <monitor-id> [flags]
+ht-cli reports list-monitor <monitor-id> [flags]
 ```
 
 Returns who receives reports for this monitor - one row per contact, each carrying its set of report frequencies (daily/weekly/monthly/quarterly/yearly). Reports are Email-only. Set a subscription with PUT /monitor/{monitorId}/report/{contactId}. The contact's address is included only when the token also carries a contact read scope - a monitor-scoped token sees which contact it is, not how to reach it.
@@ -331,12 +331,12 @@ One page is returned by default. --all walks every page.
 | `--query-file` | string | filter with a body query read from a file |
 | `--query` | string | filter with a body query against /monitor/{monitorId}/report/q: inline JSON, @file, or - |
 
-## `ht reports list-subscription`
+## `ht-cli reports list-subscription`
 
 List every report subscription on the account, flat.
 
 ```
-ht reports list-subscription [flags]
+ht-cli reports list-subscription [flags]
 ```
 
 Returns every (monitor, contact) report pair the account holds as one flat list - both sides identified on every row, with the pair's frequency set. Narrow by the entity-prefixed filters of either side: monitor.id, monitor.type, monitor.tag, monitor.url (+monitor.like), monitor.q, and contact.id, contact.type, contact.confirmed, contact.q. The report twin of the flat alert-subscription list.
@@ -365,12 +365,12 @@ One page is returned by default. --all walks every page.
 | `--query-file` | string | filter with a body query read from a file |
 | `--query` | string | filter with a body query against /report/q: inline JSON, @file, or - |
 
-## `ht reports list-type`
+## `ht-cli reports list-type`
 
 List the report types, formats and schedules available.
 
 ```
-ht reports list-type [flags]
+ht-cli reports list-type [flags]
 ```
 
 Returns the catalogue of report types the account can generate, with the output formats, content sections and delivery frequencies each supports. Use it to build a report request form or to validate a type before generating - frequencies are published as words, so nothing here has to be decoded.
@@ -389,12 +389,12 @@ One page is returned by default. --all walks every page.
 | `--query-file` | string | filter with a body query read from a file |
 | `--query` | string | filter with a body query against /report/type/q: inline JSON, @file, or - |
 
-## `ht reports set-contact`
+## `ht-cli reports set-contact`
 
 Set the frequency set for this contact-and-monitor pair.
 
 ```
-ht reports set-contact <id> <monitor-id> [flags]
+ht-cli reports set-contact <id> <monitor-id> [flags]
 ```
 
 The contact-side mirror of setMonitorReport: idempotently sets which report frequencies this contact receives for the monitor in the path. `frequencies` is the EXACT desired set (at least one); reports are Email-only, so a non-Email contact is refused. Use DELETE to remove the subscription.
@@ -411,12 +411,12 @@ Arguments:
 | `--json` | string | request body: inline JSON, @file, or - for standard input |
 | `--set` | stringArray | set one body member: --set name=api --set settings.interval=5 (repeatable) |
 
-## `ht reports set-monitor`
+## `ht-cli reports set-monitor`
 
 Set the report-frequency set for this monitor-and-contact pair.
 
 ```
-ht reports set-monitor <monitor-id> <contact-id> [flags]
+ht-cli reports set-monitor <monitor-id> <contact-id> [flags]
 ```
 
 Idempotently sets which report frequencies this contact receives for this monitor. `frequencies` is the EXACT desired set (at least one); use DELETE to remove the subscription. Reports are Email-only - a non-Email contact is refused. Answers with the resulting subscription. The contact's address is included only when the token also carries a contact read scope - a monitor-scoped token sees which contact it is, not how to reach it.

@@ -4,7 +4,7 @@
 // is never part of `go test ./...`:
 //
 //	HT_TOKEN=... go test -tags live ./cmd -run TestLive -v
-//	HT_TOKEN_FILE=~/.ht-token HT_BASE_URL=https://api2.host-tracker.com \
+//	HT_TOKEN_FILE=~/.ht-cli-token HT_BASE_URL=https://api2.host-tracker.com \
 //	  go test -tags live ./cmd -run TestLive -v
 //
 // It only reads.
@@ -47,7 +47,7 @@ func live(t *testing.T, args ...string) string {
 
 	out, errs := &bytes.Buffer{}, &bytes.Buffer{}
 	if code := Main(context.Background(), args, strings.NewReader(""), out, errs); code != htcli.ExitOK {
-		t.Fatalf("ht %s exited %d: %s", strings.Join(args, " "), code, errs)
+		t.Fatalf("ht-cli %s exited %d: %s", strings.Join(args, " "), code, errs)
 	}
 	return out.String()
 }

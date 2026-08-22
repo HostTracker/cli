@@ -20,7 +20,7 @@ var (
 	date    = ""
 )
 
-// Version is the CLI's version, as reported by `ht version`.
+// Version is the CLI's version, as reported by `ht-cli version`.
 func Version() string {
 	if version != "" {
 		return version
@@ -37,7 +37,7 @@ func userAgent() string { return "hosttracker-cli/" + Version() }
 func newVersionCommand(opts *htcli.Options) *cobra.Command {
 	return &cobra.Command{
 		Use:   "version",
-		Short: "Print the version of ht, its SDK and its toolchain",
+		Short: "Print the version of ht-cli, its SDK and its toolchain",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := opts.Resolve(); err != nil {
@@ -58,7 +58,7 @@ func newVersionCommand(opts *htcli.Options) *cobra.Command {
 				info["built"] = date
 			}
 			if opts.Format() == "table" {
-				fmt.Fprintf(opts.Out, "ht %s (sdk %s, %s, %s/%s)\n",
+				fmt.Fprintf(opts.Out, "ht-cli %s (sdk %s, %s, %s/%s)\n",
 					Version(), hosttracker.Version, runtime.Version(), runtime.GOOS, runtime.GOARCH)
 				return nil
 			}

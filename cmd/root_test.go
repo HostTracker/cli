@@ -94,7 +94,7 @@ func TestConvenienceVerbsJoinTheirGroups(t *testing.T) {
 			}
 		}
 		if !found {
-			t.Errorf("ht %s %s is missing", group, verb)
+			t.Errorf("ht-cli %s %s is missing", group, verb)
 		}
 	}
 }
@@ -128,7 +128,7 @@ func TestUnknownCommandExitsTwo(t *testing.T) {
 	if code != htcli.ExitUsage {
 		t.Fatalf("exit %d, stderr %q", code, errs)
 	}
-	if !strings.Contains(errs, "ht --help") {
+	if !strings.Contains(errs, "ht-cli --help") {
 		t.Errorf("a usage failure should point at the help, got %q", errs)
 	}
 }

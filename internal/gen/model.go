@@ -119,7 +119,7 @@ func build(doc *document) ([]group, error) {
 		sort.Slice(g.Commands, func(i, j int) bool { return g.Commands[i].Name < g.Commands[j].Name })
 		for i := 1; i < len(g.Commands); i++ {
 			if g.Commands[i].Name == g.Commands[i-1].Name {
-				return nil, fmt.Errorf("%s and %s both map to `ht %s %s`",
+				return nil, fmt.Errorf("%s and %s both map to `ht-cli %s %s`",
 					g.Commands[i-1].ID, g.Commands[i].ID, g.Name, g.Commands[i].Name)
 			}
 		}

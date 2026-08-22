@@ -1,13 +1,13 @@
-# `ht monitor-types`
+# `ht-cli monitor-types`
 
 The catalogue of check types and their settings schema
 
-## `ht monitor-types get`
+## `ht-cli monitor-types get`
 
 Get one monitor type's catalogue row and its full settings schema.
 
 ```
-ht monitor-types get <type> [flags]
+ht-cli monitor-types get <type> [flags]
 ```
 
 Returns the complete JSON Schema describing one type's settings object, together with the catalogue row a picker already has, and - for the types that can also run attached to a parent monitor - the shape they take there. Use it to validate or generate a settings body for one type; the composite schema endpoint answers the same question for all types at once.
@@ -21,24 +21,24 @@ Arguments:
 |---|---|---|
 | `--fields` | stringSlice | Which top-level members to keep on each row - fields=id,name. (type \| schema \| attachedSchema) (repeatable) |
 
-## `ht monitor-types get-settings-schema`
+## `ht-cli monitor-types get-settings-schema`
 
 Get one combined schema covering every monitor type's settings.
 
 ```
-ht monitor-types get-settings-schema
+ht-cli monitor-types get-settings-schema
 ```
 
 Returns a single JSON Schema document whose branches are every type's settings shape, selected by the monitor's type property, with each referenced shape defined once in a shared namespace. Use it when generating client types or a single schema artefact; fetch one type's schema instead when a form only ever edits one kind of monitor.
 
 GET /monitor/type/schema (getMonitorSettingsSchema)
 
-## `ht monitor-types list`
+## `ht-cli monitor-types list`
 
 List every monitor type, with its label, entitlement and constraints.
 
 ```
-ht monitor-types list [flags]
+ht-cli monitor-types list [flags]
 ```
 
 Returns the closed catalogue of monitor types: the display label, whether the account may create one, the minimum check interval, whether it needs a monitoring-location pool, and the presets it offers. Use it to drive a type picker or to validate a type before a create. Every listed type is creatable and every one has a full settings schema, so the catalogue never advertises something a write would then refuse.

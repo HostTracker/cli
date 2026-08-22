@@ -13,7 +13,7 @@ import (
 )
 
 // addJobsWait hangs the wait verb off the generated jobs group, so it
-// sits beside ht jobs get and ht jobs cancel.
+// sits beside ht-cli jobs get and ht-cli jobs cancel.
 func addJobsWait(root *cobra.Command, opts *htcli.Options) {
 	group := findGroup(root, "jobs")
 	if group == nil {
@@ -39,7 +39,7 @@ pace the API asks for and prints it once it stops moving.
 Reaching a terminal state is a success whatever that state is: succeeded,
 partial, failed and cancelled all exit 0, and the printed state is what
 says which. A job that was interrupted stops the wait as well, because it
-makes no further progress until ht jobs resume continues it.`,
+makes no further progress until ht-cli jobs resume continues it.`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := opts.Resolve(); err != nil {
@@ -67,7 +67,7 @@ makes no further progress until ht jobs resume continues it.`,
 				return err
 			}
 			if job != nil && job.State != nil && *job.State == hosttracker.JobViewStateInterrupted {
-				fmt.Fprintf(opts.Err, "the job was interrupted; `ht jobs resume %s` continues it\n", args[0])
+				fmt.Fprintf(opts.Err, "the job was interrupted; `ht-cli jobs resume %s` continues it\n", args[0])
 			}
 			return nil
 		},

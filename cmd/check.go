@@ -18,7 +18,7 @@ func newCheckCommand(opts *htcli.Options) *cobra.Command {
 		Long: `Run a one-off check without creating a monitor.
 
 The full instant-check surface, including the catalogue of types and the
-history of past runs, is under ht instant-checks.`,
+history of past runs, is under ht-cli instant-checks.`,
 	}
 	cmd.AddCommand(newCheckRunCommand(opts))
 	return cmd
@@ -41,13 +41,13 @@ func newCheckRunCommand(opts *htcli.Options) *cobra.Command {
 		Short: "Start an instant check, and follow it to its result",
 		Long: `Start an instant check, and follow it to its result.
 
-  ht check run https://www.host-tracker.com --wait
-  ht check run example.com --type ping --country de --country us --wait
-  ht check run example.com:443 --type port --pool premium
+  ht-cli check run https://www.host-tracker.com --wait
+  ht-cli check run example.com --type ping --country de --country us --wait
+  ht-cli check run example.com:443 --type port --pool premium
 
 Without --wait the command prints the 202 receipt, whose id is what
-ht instant-checks get <db-id> <id> reads later. With --wait it polls at
-the pace the API asks for and prints the finished result.
+ht-cli instant-checks get <db-id> <id> reads later. With --wait it polls
+at the pace the API asks for and prints the finished result.
 
 --json supplies the whole request body for a shape the flags do not
 reach, and the flags then fill in what it left out.`,
@@ -75,7 +75,7 @@ reach, and the flags then fill in what it left out.`,
 			if checkType != "" {
 				kind := hosttracker.IcCreateRequestType(checkType)
 				if !kind.Valid() {
-					return htcli.Usagef("--type: %q is not a known check type; ht instant-checks list-type prints the catalogue", checkType)
+					return htcli.Usagef("--type: %q is not a known check type; ht-cli instant-checks list-type prints the catalogue", checkType)
 				}
 				request.Type = &kind
 			}
@@ -98,7 +98,7 @@ reach, and the flags then fill in what it left out.`,
 				if err := opts.Printer().Print(resp.JSON202); err != nil {
 					return err
 				}
-				fmt.Fprintf(opts.Err, "started; pass --wait to follow it, or read it with `ht instant-checks get %d %s`\n",
+				fmt.Fprintf(opts.Err, "started; pass --wait to follow it, or read it with `ht-cli instant-checks get %d %s`\n",
 					resp.JSON202.DbId, resp.JSON202.Id)
 				return nil
 			}

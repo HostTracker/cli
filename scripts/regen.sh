@@ -32,8 +32,8 @@ trap '[ -n "$cleanup" ] && rm -f "$cleanup"' EXIT
 echo "spec: $spec"
 go run ./internal/gen -spec "$spec" -out cmd/gen
 
-go build -o "$(mktemp -d)/ht" .
-go run . docs --dir docs
+go build -o "$(mktemp -d)/ht-cli" ./cmd/ht-cli
+go run ./cmd/ht-cli docs --dir docs
 
 gofmt -l cmd internal
 go build ./...

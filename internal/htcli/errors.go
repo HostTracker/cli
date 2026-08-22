@@ -104,7 +104,7 @@ func PrintError(w io.Writer, err error, format output.Format) {
 	}
 	apiErr, ok := hosttracker.AsError(err)
 	if !ok {
-		fmt.Fprintf(w, "ht: %s\n", err)
+		fmt.Fprintf(w, "ht-cli: %s\n", err)
 		return
 	}
 
@@ -118,7 +118,7 @@ func PrintError(w io.Writer, err error, format output.Format) {
 	if apiErr.Status > 0 {
 		head = fmt.Sprintf("%s (HTTP %d)", apiErr.Code, apiErr.Status)
 	}
-	fmt.Fprintf(w, "ht: %s\n", head)
+	fmt.Fprintf(w, "ht-cli: %s\n", head)
 	if detail := strings.TrimSpace(apiErr.Detail); detail != "" {
 		fmt.Fprintf(w, "    %s\n", detail)
 	} else if title := strings.TrimSpace(apiErr.Title); title != "" {

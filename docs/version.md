@@ -1,13 +1,13 @@
-# `ht version`
+# `ht-cli version`
 
-Print the version of ht, its SDK and its toolchain
+Print the version of ht-cli, its SDK and its toolchain
 
-## `ht version`
+## `ht-cli version`
 
-Print the version of ht, its SDK and its toolchain
+Print the version of ht-cli, its SDK and its toolchain
 
 ```
-ht version
+ht-cli version
 ```
 
 ---

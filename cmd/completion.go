@@ -10,10 +10,10 @@ func newCompletionCommand() *cobra.Command {
 		Short: "Print a shell completion script",
 		Long: `Print a shell completion script.
 
-  bash        ht completion bash > /etc/bash_completion.d/ht
-  zsh         ht completion zsh > "${fpath[1]}/_ht"
-  fish        ht completion fish > ~/.config/fish/completions/ht.fish
-  powershell  ht completion powershell | Out-String | Invoke-Expression
+  bash        ht-cli completion bash > /etc/bash_completion.d/ht-cli
+  zsh         ht-cli completion zsh > "${fpath[1]}/_ht-cli"
+  fish        ht-cli completion fish > ~/.config/fish/completions/ht-cli.fish
+  powershell  ht-cli completion powershell | Out-String | Invoke-Expression
 
 Installed through Homebrew, the bash and zsh scripts are already in place.`,
 		Args:                  cobra.ExactArgs(1),

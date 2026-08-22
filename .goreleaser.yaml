@@ -1,9 +1,9 @@
-# Release configuration for `ht`, built by .github/workflows/release.yml
+# Release configuration for `ht-cli`, built by .github/workflows/release.yml
 # on a v* tag. Try a build without publishing anything with
 # `goreleaser release --snapshot --clean`.
 version: 2
 
-project_name: ht
+project_name: ht-cli
 
 before:
   hooks:
@@ -11,9 +11,9 @@ before:
     - go test ./...
 
 builds:
-  - id: ht
-    main: .
-    binary: ht
+  - id: ht-cli
+    main: ./cmd/ht-cli
+    binary: ht-cli
     env:
       - CGO_ENABLED=0
     goos: [linux, darwin, windows]
@@ -30,8 +30,8 @@ builds:
     mod_timestamp: "{{ .CommitTimestamp }}"
 
 archives:
-  - id: ht
-    ids: [ht]
+  - id: ht-cli
+    ids: [ht-cli]
     formats: [tar.gz]
     format_overrides:
       - goos: windows
@@ -69,13 +69,14 @@ release:
     ## Install
 
     ```sh
-    brew install HostTracker/tap/ht
-    go install github.com/HostTracker/cli@{{ .Tag }}
+    brew install HostTracker/tap/ht-cli
+    go install github.com/HostTracker/cli/cmd/ht-cli@{{ .Tag }}
+    curl -fsSL https://raw.githubusercontent.com/HostTracker/cli/main/install.sh | sh
     ```
 
 brews:
-  - name: ht
-    ids: [ht]
+  - name: ht-cli
+    ids: [ht-cli]
     repository:
       owner: HostTracker
       name: homebrew-tap
@@ -89,7 +90,7 @@ brews:
       name: hosttracker-release
       email: support@host-tracker.com
     test: |
-      system "#{bin}/ht", "version"
+      system "#{bin}/ht-cli", "version"
     install: |
-      bin.install "ht"
-      generate_completions_from_executable(bin/"ht", "completion")
+      bin.install "ht-cli"
+      generate_completions_from_executable(bin/"ht-cli", "completion")

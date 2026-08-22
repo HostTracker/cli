@@ -21,7 +21,7 @@ func newAuthCommand(opts *htcli.Options) *cobra.Command {
 		Short: "Store, inspect and remove the API token",
 		Long: `Store, inspect and remove the API token.
 
-The token is kept in the profile file (ht config path), which is written
+The token is kept in the profile file (ht-cli config path), which is written
 0600. A token given with --token, or found in ` + htcli.EnvToken + `, wins over the
 stored one for that command, so a CI job needs no file at all.`,
 	}
@@ -43,9 +43,9 @@ The token is read from --token, from ` + htcli.EnvToken + `, from standard input
 --token-stdin, or from a prompt that does not echo. It is verified against
 GET /account before it is written, unless --verify=false.
 
-  ht auth login                              prompt for a token
-  ht auth login --token-stdin < token.txt    read it from a file
-  ht auth login --profile staging            store it under another profile`,
+  ht-cli auth login                              prompt for a token
+  ht-cli auth login --token-stdin < token.txt    read it from a file
+  ht-cli auth login --profile staging            store it under another profile`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := opts.Resolve(); err != nil {

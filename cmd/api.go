@@ -28,10 +28,10 @@ the shortest way to reproduce a call from the reference documentation. The
 request still rides the SDK, so the token, the idempotency key, the retry
 ladder and the error mapping are the same as every other command's.
 
-  ht api GET /account
-  ht api GET /monitor --query limit=5 --query state=down
-  ht api POST /monitor --set name=api --set type=http --set url=https://example.com
-  ht api PATCH /monitor/<id> --json '{"enabled":false}'`,
+  ht-cli api GET /account
+  ht-cli api GET /monitor --query limit=5 --query state=down
+  ht-cli api POST /monitor --set name=api --set type=http --set url=https://example.com
+  ht-cli api PATCH /monitor/<id> --json '{"enabled":false}'`,
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := opts.Resolve(); err != nil {

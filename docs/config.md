@@ -1,4 +1,4 @@
-# `ht config`
+# `ht-cli config`
 
 Read and write the stored settings
 
@@ -8,43 +8,43 @@ Each profile holds a token, a base-url and a default output format. The
 file is written 0600 under the OS configuration directory; HT_CONFIG_DIR
 moves it somewhere else, which is what a throwaway or CI profile wants.
 
-## `ht config get`
+## `ht-cli config get`
 
 Print one setting of the current profile
 
 ```
-ht config get <key>
+ht-cli config get <key>
 ```
 
-## `ht config list`
+## `ht-cli config list`
 
 List the profiles and their settings
 
 ```
-ht config list
+ht-cli config list
 ```
 
-## `ht config path`
+## `ht-cli config path`
 
 Print where the settings are stored
 
 ```
-ht config path
+ht-cli config path
 ```
 
-## `ht config set`
+## `ht-cli config set`
 
 Write one setting of the current profile
 
 ```
-ht config set <key> <value>
+ht-cli config set <key> <value>
 ```
 
 Write one setting of the current profile.
 
-  ht config set base-url https://api2.host-tracker.com
-  ht config set output json
-  ht config set token "$HT_TOKEN"
+  ht-cli config set base-url https://api2.host-tracker.com
+  ht-cli config set output json
+  ht-cli config set token "$HT_TOKEN"
 
 Known keys: token, base-url, output.
 

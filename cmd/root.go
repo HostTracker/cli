@@ -1,4 +1,4 @@
-// Package cmd assembles the `ht` command tree: the generated command per
+// Package cmd assembles the `ht-cli` command tree: the generated command per
 // API operation, and the hand-written commands around them.
 package cmd
 
@@ -13,17 +13,19 @@ import (
 	"github.com/HostTracker/cli/internal/htcli"
 )
 
-const rootLong = `ht is the official command-line client for the HostTracker API.
+const rootLong = `ht-cli is the official command-line client for the
+HostTracker API.
 
 Every operation of the API is a command, grouped by the family it belongs
-to: ht monitors list, ht contacts create, ht status-pages get. Reads print
-a table on a terminal and JSON when piped; --output picks explicitly.
+to: ht-cli monitors list, ht-cli contacts create, ht-cli status-pages
+get. Reads print a table on a terminal and JSON when piped; --output
+picks explicitly.
 
 Start with:
 
-  ht auth login                      store an API token
-  ht monitors list                   the account's monitors
-  ht check run https://example.com   a one-off check, no monitor needed
+  ht-cli auth login                      store an API token
+  ht-cli monitors list                   the account's monitors
+  ht-cli check run https://example.com   a one-off check, no monitor needed
 
 Tokens are minted on the HostTracker profile page.`
 
@@ -31,7 +33,7 @@ Tokens are minted on the HostTracker profile page.`
 // resolved once the command line has been parsed.
 func New(opts *htcli.Options) *cobra.Command {
 	root := &cobra.Command{
-		Use:           "ht",
+		Use:           "ht-cli",
 		Short:         "The HostTracker command-line client",
 		Long:          rootLong,
 		SilenceUsage:  true,
@@ -86,13 +88,13 @@ func Main(ctx context.Context, args []string, stdin io.Reader, stdout, stderr io
 	code := htcli.ExitCode(err)
 	htcli.PrintError(opts.Err, err, opts.Format())
 	if code == htcli.ExitUsage {
-		fmt.Fprintln(opts.Err, "Run 'ht --help' for usage.")
+		fmt.Fprintln(opts.Err, "Run 'ht-cli --help' for usage.")
 	}
 	return code
 }
 
 // findGroup returns the generated group command a hand-written command
-// hangs off, so `ht jobs wait` sits beside the generated `ht jobs get`.
+// hangs off, so `ht-cli jobs wait` sits beside the generated `ht-cli jobs get`.
 func findGroup(root *cobra.Command, name string) *cobra.Command {
 	for _, cmd := range root.Commands() {
 		if cmd.Name() == name {

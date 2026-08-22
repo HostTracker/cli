@@ -1,5 +1,5 @@
 # Build artefacts
-/ht
+/ht-cli
 /dist/
 *.test
 *.out

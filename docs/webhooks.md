@@ -1,13 +1,13 @@
-# `ht webhooks`
+# `ht-cli webhooks`
 
 Webhook endpoints, their deliveries and test sends
 
-## `ht webhooks create`
+## `ht-cli webhooks create`
 
 Register a webhook to receive signed event deliveries.
 
 ```
-ht webhooks create [flags]
+ht-cli webhooks create [flags]
 ```
 
 Registers an endpoint that receives signed HTTP deliveries for the events and monitors you name. This response is the only place the full signing secret is ever returned - generate one here or supply your own, and store it, because every later read shows only that a secret is set. A url that already has a webhook is refused rather than silently duplicated. Optional custom request headers travel with every delivery; names in the HT- and webhook- namespaces are reserved for the delivery's own headers and are refused.
@@ -20,12 +20,12 @@ POST /webhook (createWebhook)
 | `--json` | string | request body: inline JSON, @file, or - for standard input |
 | `--set` | stringArray | set one body member: --set name=api --set settings.interval=5 (repeatable) |
 
-## `ht webhooks delete`
+## `ht-cli webhooks delete`
 
 Unregister a webhook and stop its deliveries.
 
 ```
-ht webhooks delete <id> [flags]
+ht-cli webhooks delete <id> [flags]
 ```
 
 Deletes a webhook and answers with a receipt naming how many monitors it was addressed to and how many deliveries were still waiting to retry and are now dropped. Use it to retire an integration for good; to pause one temporarily, set its enabled flag to false instead.
@@ -39,12 +39,12 @@ Arguments:
 |---|---|---|
 | `--idempotency-key` | string | Optional. A client-chosen key, unique per logical request. |
 
-## `ht webhooks get`
+## `ht-cli webhooks get`
 
 Get one registered webhook by id.
 
 ```
-ht webhooks get <id> [flags]
+ht-cli webhooks get <id> [flags]
 ```
 
 Returns a single webhook in the shape the list endpoint uses, minus the signing secret's value. Use it to refresh one webhook's state - its enabled flag, its failure count, when it last delivered - without re-reading the whole account's list.
@@ -58,12 +58,12 @@ Arguments:
 |---|---|---|
 | `--fields` | stringSlice | Which top-level members to keep on each row - fields=id,name. (id \| url \| events \| scope \| name \| enabled \| disabledReason \| consecutiveFailures \| ... 5 more) (repeatable) |
 
-## `ht webhooks list`
+## `ht-cli webhooks list`
 
 List the account's registered webhooks.
 
 ```
-ht webhooks list [flags]
+ht-cli webhooks list [flags]
 ```
 
 Returns every webhook registered on the account with its enabled state, event subscriptions and delivery health - never the signing secret's value, only whether one is set. The same response publishes the full catalogue of event types a webhook may subscribe to, so a management UI needs one call rather than two. Sortable (sort=created|updated|name|url, optionally suffixed :asc or :desc), and sync-shaped: updatedSince= (Unix seconds or a previous response's syncCursor) narrows to rows edited since - `updated` is edit-faithful on this surface.
@@ -84,12 +84,12 @@ One page is returned by default. --all walks every page.
 | `--sort` | string | created \| updated \| name \| url, optionally suffixed :asc/:desc. (created \| updated \| name \| url \| created:asc \| created:desc \| updated:asc \| updated:desc \| ... 4 more) |
 | `--updated-since` | string | Return only what changed since this point - either Unix seconds, or the syncCursor a previous response returned. |
 
-## `ht webhooks list-delivery`
+## `ht-cli webhooks list-delivery`
 
 List recent deliveries for one webhook.
 
 ```
-ht webhooks list-delivery <id> [flags]
+ht-cli webhooks list-delivery <id> [flags]
 ```
 
 Returns a page of recent deliveries for one webhook, each with its outcome, every attempt it took, the status code the endpoint answered and a short excerpt of its response - which is usually enough to see why a delivery failed. Filter by time window, event or outcome. A delivery that is still retrying reads as pending and carries the time of its next attempt. Deliveries are kept for a bounded window; the webhook's own record of its last delivery and failure count is always available.
@@ -115,12 +115,12 @@ One page is returned by default. --all walks every page.
 | `--query` | string | filter with a body query against /webhook/{id}/delivery/q: inline JSON, @file, or - |
 | `--to` | int64 | Window end, Unix seconds. |
 
-## `ht webhooks redeliver`
+## `ht-cli webhooks redeliver`
 
 Resend a previously recorded webhook delivery.
 
 ```
-ht webhooks redeliver <id> <delivery-id> [flags]
+ht-cli webhooks redeliver <id> <delivery-id> [flags]
 ```
 
 Resends the exact payload of a recorded delivery with a freshly signed timestamp and reports the outcome synchronously. Use it to recover a delivery an endpoint missed while it was down, once the endpoint is healthy again. The delivery identifier is reused unchanged, so a consumer that deduplicates on it will not process the event twice.
@@ -135,12 +135,12 @@ Arguments:
 |---|---|---|
 | `--idempotency-key` | string | Optional. A client-chosen key, unique per logical request. |
 
-## `ht webhooks test`
+## `ht-cli webhooks test`
 
 Send a synthetic test delivery to a webhook.
 
 ```
-ht webhooks test <id> [flags]
+ht-cli webhooks test <id> [flags]
 ```
 
 Sends one structurally realistic event to the webhook's endpoint, signed exactly the way a real delivery is, and reports the outcome synchronously - including the signature header value that was sent, so a receiving implementation can be debugged against it. A test is never retried, so a failure is visible immediately instead of being queued.
@@ -156,12 +156,12 @@ Arguments:
 | `--json` | string | request body: inline JSON, @file, or - for standard input |
 | `--set` | stringArray | set one body member: --set name=api --set settings.interval=5 (repeatable) |
 
-## `ht webhooks update`
+## `ht-cli webhooks update`
 
 Change a webhook's url, events, scope, name, headers or enabled state.
 
 ```
-ht webhooks update <id> [flags]
+ht-cli webhooks update <id> [flags]
 ```
 
 Updates the members the body names and leaves the rest alone. Re-enabling a webhook that auto-disabled also clears its failure count in the same call. Rotating the signing secret mints a new one, returns it once, and keeps the previous secret accepted for a grace window, so verification on the receiving side does not break the instant the rotation lands.
@@ -177,12 +177,12 @@ Arguments:
 | `--json` | string | request body: inline JSON, @file, or - for standard input |
 | `--set` | stringArray | set one body member: --set name=api --set settings.interval=5 (repeatable) |
 
-## `ht webhooks verify`
+## `ht-cli webhooks verify`
 
 Check a webhook signature against the delivered body
 
 ```
-ht webhooks verify [flags]
+ht-cli webhooks verify [flags]
 ```
 
 Check a webhook signature against the delivered body.
@@ -196,7 +196,7 @@ The body is read from standard input (or --body-file), the headers from
 The signature is computed over the RAW body, so it must be the exact bytes
 the endpoint received: a re-serialised copy verifies against nothing.
 
-  ht webhooks verify --secret whsec_... --headers-file headers.txt < body.json
+  ht-cli webhooks verify --secret whsec_... --headers-file headers.txt < body.json
 
 An accepted signature exits 0 and prints the event; a rejected one exits 5.
 Both signature schemes the API sends are accepted, and several --secret
