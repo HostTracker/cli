@@ -33,6 +33,21 @@ renamed or removed command is a breaking change, a new one is not.
 - `install.sh`, a POSIX shell installer that downloads the release
   archive for the running platform, checks it against the release
   `checksums.txt` and installs the binary into `~/.local/bin`.
+- Packages on every release beside the archives: a `.deb`, `.rpm` and
+  `.apk` per Linux architecture, each carrying the binary in `/usr/bin`
+  and the bash, zsh and fish completions; and the multi-architecture
+  image `ghcr.io/hosttracker/ht-cli` for CI jobs. Neither needs a
+  credential of its own.
+- Signed apt and dnf repositories at https://hosttracker.github.io/apt,
+  so `apt install ht-cli` and `dnf install ht-cli` work after one setup
+  command and `apt upgrade` carries new versions. The release workflow
+  rebuilds and signs both from the packages of each release and pushes
+  them to `HostTracker/apt`, which serves them through GitHub Pages.
+- Package-manager channels, each published from the release workflow when
+  its credential is configured and skipped when it is not: the Homebrew
+  tap, the Scoop bucket `HostTracker/scoop-bucket`, a winget manifest
+  pull request for `HostTracker.ht-cli`, and the AUR package
+  `ht-cli-bin`.
 
 ### Changed
 

@@ -48,6 +48,85 @@ curl -fsSL https://raw.githubusercontent.com/HostTracker/cli/main/install.sh | s
 `PREFIX=/usr/local/bin sh install.sh` picks another directory, and
 `VERSION=v1.2.0 sh install.sh` pins a version.
 
+**Debian and Ubuntu**, from the signed HostTracker apt repository:
+
+```sh
+curl -fsSL https://hosttracker.github.io/apt/key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/hosttracker.gpg
+echo "deb [signed-by=/usr/share/keyrings/hosttracker.gpg] https://hosttracker.github.io/apt stable main" | sudo tee /etc/apt/sources.list.d/hosttracker.list
+sudo apt update && sudo apt install ht-cli
+```
+
+`sudo apt upgrade` then carries new versions like any other package. One
+suite, `stable`, serves every supported Debian and Ubuntu release, for
+`amd64` and `arm64`.
+
+**Fedora, RHEL, CentOS Stream and openSUSE**, from the same place as a dnf
+repository:
+
+```sh
+sudo curl -fsSL -o /etc/yum.repos.d/hosttracker.repo https://hosttracker.github.io/apt/rpm/hosttracker.repo
+sudo dnf install ht-cli
+```
+
+`yum` in place of `dnf` on CentOS 7 and RHEL 7, and on openSUSE `sudo
+zypper addrepo https://hosttracker.github.io/apt/rpm/hosttracker.repo`
+then `sudo zypper install ht-cli`. Packages and metadata are both signed,
+so the repository file turns on `gpgcheck` and `repo_gpgcheck`.
+
+**A single `.deb` or `.rpm`**, without adding a repository: every release
+carries one per architecture.
+
+```sh
+ver=$(curl -fsSL https://api.github.com/repos/HostTracker/cli/releases/latest | sed -n 's/.*"tag_name": *"v\([^"]*\)".*/\1/p')
+curl -fsSLO "https://github.com/HostTracker/cli/releases/download/v$ver/ht-cli_${ver}_linux_amd64.deb"
+sudo apt install "./ht-cli_${ver}_linux_amd64.deb"
+```
+
+Swap `.deb` for `.rpm` and `apt install` for `dnf install` on the rpm
+distributions.
+
+**Alpine**: the `.apk`. It is not signed by an Alpine repository key, so
+`apk` has to be told to take it:
+
+```sh
+ver=$(curl -fsSL https://api.github.com/repos/HostTracker/cli/releases/latest | sed -n 's/.*"tag_name": *"v\([^"]*\)".*/\1/p')
+curl -fsSLO "https://github.com/HostTracker/cli/releases/download/v$ver/ht-cli_${ver}_linux_amd64.apk"
+sudo apk add --allow-untrusted "./ht-cli_${ver}_linux_amd64.apk"
+```
+
+Every Linux package puts the binary in `/usr/bin` and the bash, zsh and
+fish completions in their standard directories. Use `arm64` in place of
+`amd64` on 64-bit ARM.
+
+**Arch Linux**, from the AUR:
+
+```sh
+yay -S ht-cli-bin
+```
+
+**Windows**, with [Scoop](https://scoop.sh):
+
+```powershell
+scoop bucket add hosttracker https://github.com/HostTracker/scoop-bucket
+scoop install ht-cli
+```
+
+or with winget, once the first manifest has been accepted into the
+Microsoft repository:
+
+```powershell
+winget install HostTracker.ht-cli
+```
+
+**Docker**, for a CI job with no toolchain to install into:
+
+```sh
+docker run --rm -e HT_TOKEN ghcr.io/hosttracker/ht-cli monitors list
+```
+
+The image is `ghcr.io/hosttracker/ht-cli`, tagged `latest` and with each
+version, built for `linux/amd64` and `linux/arm64`.
+
 **Go** (1.24 or newer):
 
 ```sh
@@ -62,12 +141,14 @@ point lives under `cmd/ht-cli` and installs as `ht-cli`.
 against `checksums.txt`, and put `ht-cli` on your `PATH`.
 
 ```sh
-curl -fsSLO https://github.com/HostTracker/cli/releases/latest/download/ht-cli_1.0.0_linux_amd64.tar.gz
-tar xzf ht-cli_1.0.0_linux_amd64.tar.gz
+ver=$(curl -fsSL https://api.github.com/repos/HostTracker/cli/releases/latest | sed -n 's/.*"tag_name": *"v\([^"]*\)".*/\1/p')
+curl -fsSLO "https://github.com/HostTracker/cli/releases/download/v$ver/ht-cli_${ver}_linux_amd64.tar.gz"
+tar xzf "ht-cli_${ver}_linux_amd64.tar.gz"
 sudo install ht-cli /usr/local/bin/ht-cli
 ```
 
-Shell completion is installed with the Homebrew formula; otherwise
+Shell completion comes with the Homebrew formula, the Linux packages, the
+AUR package and the release archives; otherwise
 `ht-cli completion bash|zsh|fish|powershell` prints the script.
 
 ## Authenticate

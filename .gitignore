@@ -17,3 +17,6 @@
 .vscode/
 *.swp
 .DS_Store
+
+# Completion scripts written by scripts/completions.sh at release time
+/completions/

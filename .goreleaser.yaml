@@ -1,6 +1,12 @@
 # Release configuration for `ht-cli`, built by .github/workflows/release.yml
 # on a v* tag. Try a build without publishing anything with
 # `goreleaser release --snapshot --clean`.
+#
+# Every package channel that needs a credential is gated on its own
+# environment variable through `isEnvSet`: unset or empty skips that channel
+# and the rest of the release still publishes, so a snapshot run locally and
+# a release with only some secrets configured both work. The release workflow
+# lists which secret feeds which.
 version: 2
 
 project_name: ht-cli
@@ -9,6 +15,7 @@ before:
   hooks:
     - go mod tidy
     - go test ./...
+    - sh scripts/completions.sh
 
 builds:
   - id: ht-cli
@@ -43,6 +50,56 @@ archives:
       - CHANGELOG.md
       - src: docs/*.md
         dst: docs
+      - src: completions/*
+        dst: completions
+
+# Debian, RPM and Alpine packages for the two Linux architectures. They
+# attach to the release; users install them from the downloaded file.
+nfpms:
+  - id: packages
+    ids: [ht-cli]
+    package_name: ht-cli
+    formats: [deb, rpm, apk]
+    vendor: HostTracker Ltd
+    maintainer: HostTracker Ltd <ht2support@host-tracker.com>
+    homepage: https://www.host-tracker.com/integrations/cli
+    license: MIT
+    # The first line is the Debian synopsis, the rest the long description.
+    description: |-
+      The official HostTracker command-line client.
+      Every operation of the HostTracker API2 v2 REST surface is a command:
+      monitors, contacts, alerts, reports, incidents, maintenance windows,
+      status pages, webhooks and on-demand checks. Output as JSON, YAML or a
+      table, and one exit code per failure class.
+    section: utils
+    priority: optional
+    bindir: /usr/bin
+    contents:
+      - src: completions/ht-cli.bash
+        dst: /usr/share/bash-completion/completions/ht-cli
+        file_info:
+          mode: 0644
+      - src: completions/ht-cli.zsh
+        dst: /usr/share/zsh/site-functions/_ht-cli
+        file_info:
+          mode: 0644
+      - src: completions/ht-cli.fish
+        dst: /usr/share/fish/vendor_completions.d/ht-cli.fish
+        file_info:
+          mode: 0644
+      - src: LICENSE
+        dst: /usr/share/doc/ht-cli/LICENSE
+        file_info:
+          mode: 0644
+      - src: README.md
+        dst: /usr/share/doc/ht-cli/README.md
+        file_info:
+          mode: 0644
+    rpm:
+      summary: The official HostTracker command-line client
+    deb:
+      lintian_overrides:
+        - statically-linked-binary
 
 checksum:
   name_template: checksums.txt
@@ -72,7 +129,15 @@ release:
     brew install HostTracker/tap/ht-cli
     go install github.com/HostTracker/cli/cmd/ht-cli@{{ .Tag }}
     curl -fsSL https://raw.githubusercontent.com/HostTracker/cli/main/install.sh | sh
+    docker run --rm -e HT_TOKEN ghcr.io/hosttracker/ht-cli:{{ .Version }} monitors list
     ```
+
+    Debian/Ubuntu: `sudo apt install ht-cli` from https://hosttracker.github.io/apt (setup in the README).
+    Fedora/RHEL: `sudo dnf install ht-cli` with https://hosttracker.github.io/apt/rpm/hosttracker.repo.
+    Windows: `scoop bucket add hosttracker https://github.com/HostTracker/scoop-bucket && scoop install ht-cli`.
+
+    The `.deb`, `.rpm` and `.apk` below carry the same binary, in
+    `/usr/bin`, with the shell completions.
 
 brews:
   - name: ht-cli
@@ -83,14 +148,127 @@ brews:
       branch: main
       token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
     directory: Formula
-    homepage: https://www.host-tracker.com
+    homepage: https://www.host-tracker.com/integrations/cli
     description: The official HostTracker command-line client
     license: MIT
     commit_author:
       name: hosttracker-release
-      email: support@host-tracker.com
+      email: ht2support@host-tracker.com
+    skip_upload: '{{ if isEnvSet "HOMEBREW_TAP_TOKEN" }}false{{ else }}true{{ end }}'
     test: |
       system "#{bin}/ht-cli", "version"
     install: |
       bin.install "ht-cli"
       generate_completions_from_executable(bin/"ht-cli", "completion")
+
+# Multi-architecture image, manifest included. GHCR takes the workflow's
+# own GITHUB_TOKEN, so this one needs no secret of its own.
+dockers_v2:
+  - id: ht-cli
+    ids: [ht-cli]
+    dockerfile: Dockerfile
+    images:
+      - ghcr.io/hosttracker/ht-cli
+    tags:
+      - "{{ .Version }}"
+      - '{{ if not .Prerelease }}latest{{ end }}'
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    labels:
+      org.opencontainers.image.title: ht-cli
+      org.opencontainers.image.description: The official HostTracker command-line client
+      org.opencontainers.image.url: https://www.host-tracker.com/integrations/cli
+      org.opencontainers.image.source: https://github.com/HostTracker/cli
+      org.opencontainers.image.documentation: https://github.com/HostTracker/cli/blob/main/README.md
+      org.opencontainers.image.version: "{{ .Version }}"
+      org.opencontainers.image.revision: "{{ .FullCommit }}"
+      org.opencontainers.image.created: "{{ .Date }}"
+      org.opencontainers.image.licenses: MIT
+      org.opencontainers.image.vendor: HostTracker Ltd
+
+scoops:
+  - name: ht-cli
+    ids: [ht-cli]
+    repository:
+      owner: HostTracker
+      name: scoop-bucket
+      branch: main
+      token: "{{ .Env.SCOOP_TOKEN }}"
+    directory: bucket
+    homepage: https://www.host-tracker.com/integrations/cli
+    description: The official HostTracker command-line client
+    license: MIT
+    commit_author:
+      name: hosttracker-release
+      email: ht2support@host-tracker.com
+    skip_upload: '{{ if isEnvSet "SCOOP_TOKEN" }}false{{ else }}true{{ end }}'
+
+# The manifest goes to the org's fork of microsoft/winget-pkgs on a branch
+# of its own, then to a pull request against microsoft/winget-pkgs.
+winget:
+  - name: ht-cli
+    ids: [ht-cli]
+    publisher: HostTracker
+    publisher_url: https://www.host-tracker.com
+    publisher_support_url: https://github.com/HostTracker/cli/issues
+    package_identifier: HostTracker.ht-cli
+    homepage: https://www.host-tracker.com/integrations/cli
+    short_description: The official HostTracker command-line client
+    description: |
+      ht-cli drives the HostTracker API2 v2 REST surface from a shell.
+      Every operation of the API is a command: monitors, contacts, alerts,
+      reports, incidents, maintenance windows, status pages, webhooks and
+      on-demand checks, with JSON, YAML and table output and an exit code
+      per failure class.
+    license: MIT
+    license_url: https://github.com/HostTracker/cli/blob/main/LICENSE
+    copyright: HostTracker Ltd
+    release_notes_url: "https://github.com/HostTracker/cli/releases/tag/{{ .Tag }}"
+    tags:
+      - monitoring
+      - uptime
+      - devops
+      - api
+      - cli
+    repository:
+      owner: HostTracker
+      name: winget-pkgs
+      branch: "ht-cli-{{ .Version }}"
+      token: "{{ .Env.WINGET_TOKEN }}"
+      pull_request:
+        enabled: true
+        draft: false
+        base:
+          owner: microsoft
+          name: winget-pkgs
+          branch: master
+    commit_author:
+      name: hosttracker-release
+      email: ht2support@host-tracker.com
+    skip_upload: '{{ if isEnvSet "WINGET_TOKEN" }}false{{ else }}true{{ end }}'
+
+aurs:
+  - name: ht-cli-bin
+    ids: [ht-cli]
+    homepage: https://www.host-tracker.com/integrations/cli
+    description: The official HostTracker command-line client
+    license: MIT
+    maintainers:
+      - HostTracker Ltd <ht2support@host-tracker.com>
+    provides:
+      - ht-cli
+    conflicts:
+      - ht-cli
+    git_url: ssh://aur@aur.archlinux.org/ht-cli-bin.git
+    private_key: '{{ .Env.AUR_KEY }}'
+    commit_author:
+      name: hosttracker-release
+      email: ht2support@host-tracker.com
+    skip_upload: '{{ if isEnvSet "AUR_KEY" }}false{{ else }}true{{ end }}'
+    package: |-
+      install -Dm755 "./ht-cli" "${pkgdir}/usr/bin/ht-cli"
+      install -Dm644 "./LICENSE" "${pkgdir}/usr/share/licenses/ht-cli-bin/LICENSE"
+      install -Dm644 "./completions/ht-cli.bash" "${pkgdir}/usr/share/bash-completion/completions/ht-cli"
+      install -Dm644 "./completions/ht-cli.zsh" "${pkgdir}/usr/share/zsh/site-functions/_ht-cli"
+      install -Dm644 "./completions/ht-cli.fish" "${pkgdir}/usr/share/fish/vendor_completions.d/ht-cli.fish"

@@ -1,18 +1,24 @@
 name: Release
 
-# A v* tag builds the archives with goreleaser, publishes a GitHub
-# Release and bumps the Homebrew formula in HostTracker/homebrew-tap.
+# A v* tag builds the archives, the .deb/.rpm/.apk packages and the
+# ghcr.io image with goreleaser, publishes a GitHub Release, and updates
+# every package channel whose credential is present.
 #
-# Secrets:
-#   HOMEBREW_TAP_TOKEN  a fine-grained PAT with contents:write on
-#                       HostTracker/homebrew-tap. Without it the release
-#                       still publishes; only the tap bump fails.
+# Secrets. Each one is optional: goreleaser skips the channel whose variable
+# is unset or empty, and the rest of the release still publishes.
+#   HOMEBREW_TAP_TOKEN  PAT with contents:write on HostTracker/homebrew-tap; bumps the brew formula.
+#   SCOOP_TOKEN         PAT with contents:write on HostTracker/scoop-bucket; writes bucket/ht-cli.json.
+#   WINGET_TOKEN        PAT with contents:write on the HostTracker/winget-pkgs fork and pull-request write on microsoft/winget-pkgs; opens the manifest PR.
+#   AUR_KEY             private half of the SSH key registered with the AUR account owning ht-cli-bin; pushes the PKGBUILD.
+# The GitHub Release, the packages attached to it and ghcr.io/hosttracker/ht-cli
+# need no secret beyond the job's own GITHUB_TOKEN.
 on:
   push:
     tags: ["v*"]
 
 permissions:
   contents: write
+  packages: write
 
 jobs:
   release:
@@ -35,10 +41,152 @@ jobs:
 
       - uses: anchore/sbom-action/download-syft@v0
 
+      # buildx's container driver builds the multi-architecture image and its
+      # SBOM attestation; QEMU covers the architectures the runner is not.
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - uses: goreleaser/goreleaser-action@v6
         with:
           version: "~> v2"
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # An unconfigured secret arrives here as the empty string, which the
+          # matching skip_upload gate in .goreleaser.yaml reads as "skip".
           HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          SCOOP_TOKEN: ${{ secrets.SCOOP_TOKEN }}
+          WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
+          AUR_KEY: ${{ secrets.AUR_KEY }}
+
+  # Rebuilds the signed apt and dnf repositories at
+  # https://hosttracker.github.io/apt from the packages the release above
+  # just attached, and pushes the result to HostTracker/apt.
+  #
+  # Secrets, all of a piece:
+  #   APT_REPO_TOKEN       fine-grained PAT with contents:write on HostTracker/apt; commits and pushes the rebuilt repositories.
+  #   APT_GPG_PRIVATE_KEY  armored private half of the package signing key; signs InRelease, Release.gpg, every .rpm and repomd.xml.
+  #   APT_GPG_PASSPHRASE   passphrase of that key, if it has one; leave unset for a key generated with %no-protection.
+  # The switch is the APT_REPO_ENABLED repository variable, because an `if:`
+  # can read a variable and cannot read a secret. Prereleases are skipped:
+  # the suite is called stable and a release candidate does not belong in it.
+  publish-repos:
+    needs: release
+    if: ${{ vars.APT_REPO_ENABLED == 'true' && !contains(github.ref_name, '-') }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: publish-repos
+      cancel-in-progress: false
+    steps:
+      - name: Download the release packages
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release download "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" \
+            -p '*.deb' -p '*.rpm' -D packages
+          ls -l packages
+
+      - uses: actions/checkout@v4
+        with:
+          repository: HostTracker/apt
+          ref: main
+          token: ${{ secrets.APT_REPO_TOKEN }}
+          path: repo
+
+      # apt-utils carries apt-ftparchive, rpm carries rpmsign.
+      - name: Install the repository tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends apt-utils createrepo-c rpm
+
+      - name: Import the signing key
+        env:
+          APT_GPG_PRIVATE_KEY: ${{ secrets.APT_GPG_PRIVATE_KEY }}
+          APT_GPG_PASSPHRASE: ${{ secrets.APT_GPG_PASSPHRASE }}
+        run: |
+          set -eu
+          umask 077
+          printf '%s\n' "$APT_GPG_PRIVATE_KEY" | gpg --batch --quiet --import
+          keyid=$(gpg --list-secret-keys --with-colons | awk -F: '$1=="fpr"{print $10; exit}')
+          test -n "$keyid"
+          # Unattended signing is configured once, in gpg.conf, so that every
+          # later call picks it up without an argument, the one rpmsign makes
+          # on its own included.
+          conf="$HOME/.gnupg/gpg.conf"
+          printf 'batch\nyes\npinentry-mode loopback\n' >> "$conf"
+          if [ -n "$APT_GPG_PASSPHRASE" ]; then
+            printf '%s' "$APT_GPG_PASSPHRASE" > "$HOME/.gnupg/passphrase"
+            echo "passphrase-file $HOME/.gnupg/passphrase" >> "$conf"
+          fi
+          echo "KEYID=$keyid" >> "$GITHUB_ENV"
+          echo "signing with $keyid"
+
+      # The metadata is rebuilt from the pool every run rather than patched,
+      # so the result depends only on the files present.
+      - name: Rebuild the apt repository
+        working-directory: repo
+        run: |
+          set -eu
+          mkdir -p pool/main/h/ht-cli
+          cp ../packages/*.deb pool/main/h/ht-cli/
+          for arch in amd64 arm64; do
+            dir="dists/stable/main/binary-$arch"
+            mkdir -p "$dir"
+            apt-ftparchive --arch "$arch" packages pool > "$dir/Packages"
+            gzip -9cn "$dir/Packages" > "$dir/Packages.gz"
+          done
+          # apt-ftparchive hashes every file in the directory it is given, so
+          # Release is written outside the tree and moved in.
+          rm -f dists/stable/Release dists/stable/Release.gpg dists/stable/InRelease
+          apt-ftparchive -c conf/release.conf release dists/stable > "$RUNNER_TEMP/Release"
+          mv "$RUNNER_TEMP/Release" dists/stable/Release
+          gpg -u "$KEYID" --armor --detach-sign \
+            --output dists/stable/Release.gpg dists/stable/Release
+          gpg -u "$KEYID" --clearsign \
+            --output dists/stable/InRelease dists/stable/Release
+
+      # Both the packages and repomd.xml are signed, which is what lets the
+      # .repo file turn on gpgcheck and repo_gpgcheck. __gpg is pinned because
+      # the stock macro names a path that Debian does not ship.
+      - name: Rebuild the rpm repository
+        working-directory: repo
+        run: |
+          set -eu
+          mkdir -p rpm
+          cp ../packages/*.rpm rpm/
+          rpmsign --define "__gpg /usr/bin/gpg" \
+                  --define "_gpg_name $KEYID" \
+                  --addsign rpm/*.rpm
+          createrepo_c --quiet rpm
+          rm -f rpm/repodata/repomd.xml.asc
+          gpg -u "$KEYID" --armor --detach-sign \
+            --output rpm/repodata/repomd.xml.asc rpm/repodata/repomd.xml
+
+      - name: Publish
+        working-directory: repo
+        run: |
+          set -eu
+          gpg --armor --export "$KEYID" > key.asc
+          cp key.asc key.gpg
+          git config user.name hosttracker-release
+          git config user.email ht2support@host-tracker.com
+          git add -A
+          if git diff --cached --quiet; then
+            echo "nothing to publish"
+            exit 0
+          fi
+          git commit -m "ht-cli $GITHUB_REF_NAME"
+          git push || { git pull --rebase && git push; }
+          echo "published to https://hosttracker.github.io/apt" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Forget the key
+        if: always()
+        run: |
+          gpgconf --kill gpg-agent || true
+          rm -rf "$HOME/.gnupg"
