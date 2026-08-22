@@ -1,0 +1,44 @@
+name: Release
+
+# A v* tag builds the archives with goreleaser, publishes a GitHub
+# Release and bumps the Homebrew formula in HostTracker/homebrew-tap.
+#
+# Secrets:
+#   HOMEBREW_TAP_TOKEN  a fine-grained PAT with contents:write on
+#                       HostTracker/homebrew-tap. Without it the release
+#                       still publishes; only the tap bump fails.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "stable"
+
+      - name: go.mod must name the published SDK
+        run: |
+          if grep -q '^replace ' go.mod; then
+            echo "go.mod still carries a replace directive; a tagged release must depend on the published module"
+            exit 1
+          fi
+
+      - uses: anchore/sbom-action/download-syft@v0
+
+      - uses: goreleaser/goreleaser-action@v6
+        with:
+          version: "~> v2"
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}

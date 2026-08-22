@@ -1,0 +1,66 @@
+name: Regenerate from spec
+
+# Fired by the HostTracker/openapi repository when the published
+# specification changes:
+#
+#   gh api repos/HostTracker/cli/dispatches -f event_type=spec-updated
+#
+# Regenerates the command tree and the reference, and opens a pull request
+# when the output moved. A new, renamed or removed command shows up as a
+# reviewable diff rather than as a surprise in a release.
+on:
+  repository_dispatch:
+    types: [spec-updated]
+  workflow_dispatch:
+    inputs:
+      spec_url:
+        description: "Override the specification URL"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "stable"
+
+      - name: Regenerate
+        env:
+          HT_SPEC_URL: ${{ inputs.spec_url }}
+        run: ./scripts/regen.sh
+
+      - name: Test the regenerated tree
+        run: |
+          go vet ./...
+          go test -count=1 ./...
+
+      - name: Open a pull request when the output moved
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if git diff --quiet -- cmd/gen docs; then
+            echo "the specification produced identical output; nothing to do"
+            exit 0
+          fi
+
+          branch="spec-update/$(date -u +%Y%m%d-%H%M%S)"
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add cmd/gen docs
+          git commit -m "Regenerate the command tree from the published specification"
+          git push origin "$branch"
+
+          gh pr create \
+            --title "Regenerate the command tree from the published specification" \
+            --body "Automated regeneration triggered by a \`spec-updated\` dispatch from HostTracker/openapi.
+          Check the diff for a renamed or removed command, which is a breaking change for anyone scripting against it, and record it in CHANGELOG.md before merging." \
+            --base main --head "$branch"

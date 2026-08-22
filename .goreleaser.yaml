@@ -1,0 +1,95 @@
+# Release configuration for `ht`, built by .github/workflows/release.yml
+# on a v* tag. Try a build without publishing anything with
+# `goreleaser release --snapshot --clean`.
+version: 2
+
+project_name: ht
+
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - id: ht
+    main: .
+    binary: ht
+    env:
+      - CGO_ENABLED=0
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X github.com/HostTracker/cli/cmd.version={{ .Version }}
+      - -X github.com/HostTracker/cli/cmd.commit={{ .FullCommit }}
+      - -X github.com/HostTracker/cli/cmd.date={{ .CommitDate }}
+    # Reproducible builds: the binary is stamped with the commit's time,
+    # not the build's.
+    mod_timestamp: "{{ .CommitTimestamp }}"
+
+archives:
+  - id: ht
+    ids: [ht]
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - LICENSE
+      - README.md
+      - CHANGELOG.md
+      - src: docs/*.md
+        dst: docs
+
+checksum:
+  name_template: checksums.txt
+
+sboms:
+  - artifacts: archive
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  use: github
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+
+release:
+  draft: false
+  prerelease: auto
+  footer: |
+    ## Install
+
+    ```sh
+    brew install HostTracker/tap/ht
+    go install github.com/HostTracker/cli@{{ .Tag }}
+    ```
+
+brews:
+  - name: ht
+    ids: [ht]
+    repository:
+      owner: HostTracker
+      name: homebrew-tap
+      branch: main
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    directory: Formula
+    homepage: https://www.host-tracker.com
+    description: The official HostTracker command-line client
+    license: MIT
+    commit_author:
+      name: hosttracker-release
+      email: support@host-tracker.com
+    test: |
+      system "#{bin}/ht", "version"
+    install: |
+      bin.install "ht"
+      generate_completions_from_executable(bin/"ht", "completion")

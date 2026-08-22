@@ -1,0 +1,19 @@
+# Build artefacts
+/ht
+/dist/
+*.test
+*.out
+/coverage.*
+
+# Spec copies fetched by scripts/regen.sh (the generated cmd/gen files ARE committed)
+/openapi*.json
+
+# Local environment
+.env
+.envrc
+
+# Editors and OS
+.idea/
+.vscode/
+*.swp
+.DS_Store

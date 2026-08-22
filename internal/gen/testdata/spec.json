@@ -1,0 +1,60 @@
+{
+  "openapi": "3.0.3",
+  "info": { "title": "HostTracker API", "version": "2.0.0" },
+  "components": {
+    "parameters": {
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "description": "A client-chosen key, unique per logical request. A repeat replays the stored answer.",
+        "schema": { "type": "string" }
+      }
+    }
+  },
+  "paths": {
+    "/monitor": {
+      "get": {
+        "operationId": "listMonitor",
+        "tags": ["Monitors"],
+        "summary": "List the account's monitors, filtered, sorted and cursor-paginated.",
+        "description": "Returns a page of monitors in a lean projection.\n\nA second paragraph the generator drops.",
+        "parameters": [
+          { "name": "limit", "in": "query", "description": "Rows to return.", "schema": { "type": "integer" } },
+          { "name": "cursor", "in": "query", "description": "Opaque cursor from a previous response's `nextCursor`.", "schema": { "type": "string" } },
+          { "name": "state", "in": "query", "description": "`up` | `down`, any combination.", "style": "form", "explode": true, "schema": { "type": "array", "items": { "type": "string", "enum": ["up", "down"] } } },
+          { "name": "fields", "in": "query", "description": "Which members to keep.", "style": "form", "explode": false, "schema": { "type": "array", "items": { "type": "string" } } }
+        ],
+        "responses": { "200": { "content": { "application/json": {} } } }
+      },
+      "post": {
+        "operationId": "createMonitor",
+        "tags": ["Monitors"],
+        "summary": "Create a monitor.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": { "required": true, "content": { "application/json": {} } },
+        "responses": { "201": { "content": { "application/json": {} } } }
+      }
+    },
+    "/monitor/q": {
+      "post": {
+        "operationId": "queryMonitor",
+        "tags": ["Monitors"],
+        "summary": "The body-query twin of listMonitor.",
+        "requestBody": { "required": true, "content": { "application/json": {} } },
+        "responses": { "200": { "content": { "application/json": {} } } }
+      }
+    },
+    "/monitor/{id}": {
+      "get": {
+        "operationId": "getMonitor",
+        "tags": ["Monitors"],
+        "summary": "Retrieve one monitor.",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "description": "The monitor id. A uuid.", "schema": { "type": "string" } },
+          { "name": "expand", "in": "query", "description": "Extra blocks to embed.", "style": "form", "explode": false, "schema": { "type": "array", "items": { "type": "string" } } }
+        ],
+        "responses": { "200": { "content": { "application/json": {} } } }
+      }
+    }
+  }
+}
