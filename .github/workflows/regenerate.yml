@@ -35,7 +35,7 @@ jobs:
       - name: Regenerate
         env:
           HT_SPEC_URL: ${{ inputs.spec_url }}
-        run: ./scripts/regen.sh
+        run: bash scripts/regen.sh
 
       - name: Test the regenerated tree
         run: |

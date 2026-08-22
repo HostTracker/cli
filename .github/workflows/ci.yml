@@ -30,6 +30,12 @@ jobs:
           go-version: ${{ matrix.go }}
           check-latest: true
 
+      - name: Sibling Go SDK (only while go.mod carries a replace directive)
+        run: |
+          if grep -q '^replace github.com/HostTracker/hosttracker-sdk-go' go.mod; then
+            git clone --depth 1 https://github.com/HostTracker/hosttracker-sdk-go ../hosttracker-sdk-go
+          fi
+        shell: bash
       - name: gofmt
         if: runner.os != 'Windows'
         run: |
