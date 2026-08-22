@@ -67,7 +67,7 @@ nfpms:
     # The first line is the Debian synopsis, the rest the long description.
     description: |-
       The official HostTracker command-line client.
-      Every operation of the HostTracker API2 v2 REST surface is a command:
+      Every operation of the HostTracker API v2 REST surface is a command:
       monitors, contacts, alerts, reports, incidents, maintenance windows,
       status pages, webhooks and on-demand checks. Output as JSON, YAML or a
       table, and one exit code per failure class.
@@ -129,7 +129,7 @@ release:
     brew install HostTracker/tap/ht-cli
     go install github.com/HostTracker/cli/cmd/ht-cli@{{ .Tag }}
     curl -fsSL https://raw.githubusercontent.com/HostTracker/cli/main/install.sh | sh
-    docker run --rm -e HT_TOKEN ghcr.io/hosttracker/ht-cli:{{ .Version }} monitors list
+    docker run --rm -e HT_TOKEN ghcr.io/hosttracker/ht-cli:{{ .Version }} monitors list   # or hosttracker/ht-cli:{{ .Version }}
     ```
 
     Debian/Ubuntu: `sudo apt install ht-cli` from https://hosttracker.github.io/apt (setup in the README).
@@ -161,21 +161,24 @@ brews:
       bin.install "ht-cli"
       generate_completions_from_executable(bin/"ht-cli", "completion")
 
-# Multi-architecture image, manifest included. GHCR takes the workflow's
-# own GITHUB_TOKEN, so this one needs no secret of its own.
+# Multi-architecture images, manifest included. The same image is published
+# under two names: ghcr.io/hosttracker/ht-cli, which takes the workflow's own
+# GITHUB_TOKEN and so needs no secret of its own, and docker.io/hosttracker/ht-cli,
+# which needs a Docker Hub access token and is gated on it like every other
+# credentialed channel here.
 dockers_v2:
   - id: ht-cli
     ids: [ht-cli]
     dockerfile: Dockerfile
     images:
       - ghcr.io/hosttracker/ht-cli
-    tags:
+    tags: &image-tags
       - "{{ .Version }}"
       - '{{ if not .Prerelease }}latest{{ end }}'
-    platforms:
+    platforms: &image-platforms
       - linux/amd64
       - linux/arm64
-    labels:
+    labels: &image-labels
       org.opencontainers.image.title: ht-cli
       org.opencontainers.image.description: The official HostTracker command-line client
       org.opencontainers.image.url: https://www.host-tracker.com/integrations/cli
@@ -186,6 +189,22 @@ dockers_v2:
       org.opencontainers.image.created: "{{ .Date }}"
       org.opencontainers.image.licenses: MIT
       org.opencontainers.image.vendor: HostTracker Ltd
+
+  # The Docker Hub mirror: same Dockerfile, same binaries, same tags, so
+  # `docker pull hosttracker/ht-cli` and `docker pull ghcr.io/hosttracker/ht-cli`
+  # are the same image. `disable` is the per-image gate - unset or empty
+  # DOCKERHUB_TOKEN skips this entry alone and the ghcr image, the packages and
+  # the release still publish. The workflow logs in to Docker Hub under the same
+  # condition.
+  - id: ht-cli-dockerhub
+    ids: [ht-cli]
+    dockerfile: Dockerfile
+    disable: '{{ if isEnvSet "DOCKERHUB_TOKEN" }}false{{ else }}true{{ end }}'
+    images:
+      - docker.io/hosttracker/ht-cli
+    tags: *image-tags
+    platforms: *image-platforms
+    labels: *image-labels
 
 scoops:
   - name: ht-cli
@@ -216,7 +235,7 @@ winget:
     homepage: https://www.host-tracker.com/integrations/cli
     short_description: The official HostTracker command-line client
     description: |
-      ht-cli drives the HostTracker API2 v2 REST surface from a shell.
+      ht-cli drives the HostTracker API v2 REST surface from a shell.
       Every operation of the API is a command: monitors, contacts, alerts,
       reports, incidents, maintenance windows, status pages, webhooks and
       on-demand checks, with JSON, YAML and table output and an exit code

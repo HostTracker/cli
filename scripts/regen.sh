@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Regenerate the command tree and the reference from the published
-# HostTracker API2 v2 specification.
+# HostTracker API v2 specification.
 #
 #   ./scripts/regen.sh                        # fetch the published spec
 #   HT_SPEC=../openapi/openapi-3.0.json ./scripts/regen.sh

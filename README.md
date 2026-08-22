@@ -4,7 +4,7 @@
 [![Go reference](https://pkg.go.dev/badge/github.com/HostTracker/cli.svg)](https://pkg.go.dev/github.com/HostTracker/cli)
 [![MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-`ht-cli` drives the [HostTracker API2 v2 REST surface](https://www.host-tracker.com/apidocs/v2)
+`ht-cli` drives the [HostTracker API v2 REST surface](https://www.host-tracker.com/apidocs/v2)
 from a shell: monitors, contacts, alerts, reports, incidents, maintenance
 windows, status pages, webhooks and on-demand checks.
 
@@ -122,10 +122,15 @@ winget install HostTracker.ht-cli
 
 ```sh
 docker run --rm -e HT_TOKEN ghcr.io/hosttracker/ht-cli monitors list
+docker run --rm -e HT_TOKEN hosttracker/ht-cli monitors list
 ```
 
-The image is `ghcr.io/hosttracker/ht-cli`, tagged `latest` and with each
-version, built for `linux/amd64` and `linux/arm64`.
+The image is published under two names, `ghcr.io/hosttracker/ht-cli` and
+`docker.io/hosttracker/ht-cli` (which `docker pull` writes as
+`hosttracker/ht-cli`). They are the same image, built and pushed from the
+same release: same digests, same tags - `latest` and each version - for
+`linux/amd64` and `linux/arm64`. Pick whichever registry your CI already
+authenticates to.
 
 **Go** (1.24 or newer):
 

@@ -11,7 +11,7 @@ renamed or removed command is a breaking change, a new one is not.
 
 - First release of `ht-cli`, the official HostTracker command-line client.
 - 139 generated commands in 14 groups, one per operation of the published
-  API2 v2 specification. Path parameters are positional arguments, query
+  API v2 specification. Path parameters are positional arguments, query
   parameters are flags, and each `POST <path>/q` body query is folded into
   the read it belongs to as `--query` and `--query-file`.
 - `ht-cli auth login|logout|status` and `ht-cli config get|set|list|path`,

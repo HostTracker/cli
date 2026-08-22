@@ -1,0 +1,102 @@
+# ht-cli - the HostTracker command-line client
+
+> `ht-cli` drives the HostTracker API v2 REST surface from a shell: monitors, contacts, alerts,
+> reports, incidents, maintenance windows, status pages, webhooks and on-demand checks. Every
+> operation of the API is a command, generated from the published OpenAPI document - 139 commands in
+> 14 groups - plus a hand-written layer for authentication, output, paging and the protocols that
+> take more than one call (job waits, instant checks, webhook signatures).
+
+Underneath it is the [Go SDK](https://github.com/HostTracker/hosttracker-sdk-go), so the bearer
+token, the automatic `Idempotency-Key` on writes, the retry ladder for `429 rate_limited` and `503`,
+and the RFC 9457 problem mapping are the SDK's behaviour, not a second implementation of it.
+
+## Install
+
+```sh
+brew install HostTracker/tap/ht-cli                                          # macOS, Linux
+curl -fsSL https://raw.githubusercontent.com/HostTracker/cli/main/install.sh | sh
+sudo apt install ht-cli        # after adding https://hosttracker.github.io/apt
+sudo dnf install ht-cli        # after adding https://hosttracker.github.io/apt/rpm/hosttracker.repo
+yay -S ht-cli-bin                                                            # Arch, from the AUR
+scoop bucket add hosttracker https://github.com/HostTracker/scoop-bucket && scoop install ht-cli
+winget install HostTracker.ht-cli                                            # Windows
+docker run --rm -e HT_TOKEN ghcr.io/hosttracker/ht-cli monitors list         # or docker.io/hosttracker/ht-cli
+go install github.com/HostTracker/cli/cmd/ht-cli@latest                      # Go 1.24+
+```
+
+Release archives, `.deb`, `.rpm` and `.apk` packages are attached to every release, with
+`checksums.txt`. The Linux packages put the binary in `/usr/bin` and the bash, zsh and fish
+completions in their standard directories; otherwise `ht-cli completion bash|zsh|fish|powershell`
+prints the script.
+
+## Getting started
+
+```sh
+ht-cli auth login                  # prompts, verifies, and stores the token 0600
+ht-cli auth status                 # which credential is in force, and whether it works
+export HT_TOKEN=...                # or pass it by environment, which is what CI wants
+
+ht-cli account get-quota                                   # what the account has left
+ht-cli monitors list --state down --type http --tag prod   # narrow a listing
+ht-cli monitors list --all                                 # follow the cursor to exhaustion
+ht-cli monitors get <monitor-id> --expand settings,lastResult
+ht-cli monitors create --set name="api health" --set type=http \
+                       --set url=https://api.example.com/health --set interval=5
+ht-cli check run https://www.host-tracker.com --type http --country de --wait
+ht-cli jobs wait "$job"                                    # a bulk edit answers with a job id
+ht-cli webhooks verify --secret "$HT_WEBHOOK_SECRET" --headers-file headers.txt < body.json
+ht-cli api GET /monitor --query limit=5 --query state=down # the escape hatch
+```
+
+Resolution order for every setting: the flag, then the environment (`HT_TOKEN`, `HT_BASE_URL`,
+`HT_PROFILE`, `HT_OUTPUT`), then the profile, then the default. `ht-cli config path` prints the
+config file; `HT_CONFIG_DIR` moves it, which is the clean way to give a CI job a throwaway profile.
+
+## Commands
+
+Generated groups, one command per API operation: `monitors` (18), `monitor-types` (3), `results`
+(5), `incidents` (5), `maintenance` (6), `contacts` (19), `alerts` (21), `reports` (19), `webhooks`
+(8), `status-pages` (18), `account` (5), `monitoring-locations` (3), `instant-checks` (5), `jobs`
+(4). Plus the hand-written `auth`, `config`, `check run`, `jobs wait`, `webhooks verify`, `api`,
+`version` and `completion`.
+
+Command names follow the operation they stand for: `listMonitor` is `ht-cli monitors list`,
+`bulkCreateMonitor` is `ht-cli monitors bulk-create`, `getMonitorAttached` is
+`ht-cli monitors get-attached`. Path parameters are positional arguments; query parameters are
+flags in kebab-case, repeatable and comma-accepting when list-valued. Bodies come from `--json` or
+are assembled with `--set` at dotted paths. Output is `--output json|yaml|table`, defaulting to a
+table on a terminal and JSON when piped. `--verbose` reports each request, its status, its
+`X-Request-Id` and the rate-limit budget on stderr.
+
+- [Command reference](https://github.com/HostTracker/cli/blob/main/docs/README.md): every command, generated.
+- [Command tree](https://github.com/HostTracker/cli#command-tree): the groups and what they cover.
+- [Install](https://github.com/HostTracker/cli#install): every channel, in full.
+- [Authenticate](https://github.com/HostTracker/cli#authenticate): tokens, profiles, environment.
+- [Filters, bodies and paging](https://github.com/HostTracker/cli#filters-bodies-and-paging): flags, `--query`, `--json`, `--set`, `--all`.
+- [Output](https://github.com/HostTracker/cli#output): table, JSON, YAML, `--verbose`.
+- [Exit codes](https://github.com/HostTracker/cli#exit-codes): 0 ok, 2 usage, 3 auth, 4 not found, 5 refused, 6 throttled or quota, 7 unreachable.
+- [Regenerating](https://github.com/HostTracker/cli#regenerating): `./scripts/regen.sh`, `HT_SPEC=…`.
+- [CHANGELOG](https://github.com/HostTracker/cli/blob/main/CHANGELOG.md)
+
+## The API
+
+- [API reference](https://www.host-tracker.com/apidocs/v2): every operation, by tag.
+- [Guides](https://www.host-tracker.com/apidocs/v2/guide): authentication, paging, jobs, webhooks, errors.
+- [API tokens](https://www.host-tracker.com/integrations/api): mint a token and pick its scopes.
+- [CLI page](https://www.host-tracker.com/integrations/cli): the CLI on the HostTracker site.
+- [OpenAPI document](https://api2.host-tracker.com/openapi/v2.json): the contract the commands are generated from.
+- [openapi repository](https://github.com/HostTracker/openapi): the published document, its twins and the contract facts.
+- [MCP server](https://mcp.host-tracker.com/mcp): streamable-HTTP MCP endpoint for AI agents.
+- [Problem codes](https://api2.host-tracker.com/problems/): `https://api2.host-tracker.com/problems/{code}`.
+
+## Sibling clients
+
+- [hosttracker-sdk-go](https://github.com/HostTracker/hosttracker-sdk-go): the SDK this CLI is built on.
+- [hosttracker-sdk-js](https://github.com/HostTracker/hosttracker-sdk-js): `npm install @hosttracker/sdk`.
+- [hosttracker-sdk-python](https://github.com/HostTracker/hosttracker-sdk-python): `pip install hosttracker`.
+- [hosttracker-sdk-dotnet](https://github.com/HostTracker/hosttracker-sdk-dotnet): `dotnet add package HostTracker.Sdk`.
+- [SDK overview](https://www.host-tracker.com/integrations/sdk): all clients, on the HostTracker site.
+
+## Optional
+
+- [Issues](https://github.com/HostTracker/cli/issues): bugs and questions about the CLI. MIT licensed.

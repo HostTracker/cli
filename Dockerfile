@@ -1,4 +1,5 @@
-# The image published as ghcr.io/hosttracker/ht-cli.
+# The image published as ghcr.io/hosttracker/ht-cli and, under the same tags,
+# as docker.io/hosttracker/ht-cli.
 #
 # goreleaser builds it from the release binaries: the build context holds
 # one binary per platform under <os>/<arch>/, which TARGETPLATFORM selects.
