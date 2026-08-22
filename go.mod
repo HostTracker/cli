@@ -17,7 +17,3 @@ require (
 	github.com/oapi-codegen/runtime v1.7.0 // indirect
 	golang.org/x/sys v0.39.0 // indirect
 )
-
-// The SDK is not published yet. Dropped at release, when the tagged
-// module replaces the sibling checkout.
-replace github.com/HostTracker/hosttracker-sdk-go => ../hosttracker-sdk-go
