@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"os"
 	"path/filepath"
@@ -43,6 +44,8 @@ func TestGolden(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// A Windows checkout may convert the golden file to CRLF; compare on LF.
+	want = bytes.ReplaceAll(want, []byte("\r\n"), []byte("\n"))
 	if string(source) != string(want) {
 		t.Errorf("the generated source moved.\n--- got ---\n%s\n--- want ---\n%s", source, want)
 	}

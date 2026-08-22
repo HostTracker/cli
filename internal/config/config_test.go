@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -39,9 +40,12 @@ func TestSaveIsPrivateAndRoundTrips(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// The file holds API tokens, so it must not be readable by anyone else.
-	if mode := info.Mode().Perm(); mode != 0o600 {
-		t.Errorf("mode = %o, want 600", mode)
+	// The file holds API tokens, so it must not be readable by anyone else. Windows has no POSIX mode bits;
+	// the file inherits the user profile ACL there.
+	if runtime.GOOS != "windows" {
+		if mode := info.Mode().Perm(); mode != 0o600 {
+			t.Errorf("mode = %o, want 600", mode)
+		}
 	}
 
 	reread, err := Load()
