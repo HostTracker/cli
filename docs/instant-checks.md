@@ -65,7 +65,7 @@ One page is returned by default. --all walks every page.
 | `--query-file` | string | filter with a body query read from a file |
 | `--query` | string | filter with a body query against /check/q: inline JSON, @file, or - |
 | `--to` | int64 | The end of the time window, in Unix seconds. |
-| `--type` | stringSlice | v2 type tokens. Repeatable and comma-separable. (crawl \| dns \| dnsbl \| http \| ping \| port \| rusRegBL \| trace \| ... 3 more) (repeatable) |
+| `--type` | stringSlice | v2 type tokens. Repeatable and comma-separable. (crawl \| dns \| dnsbl \| http \| ping \| port \| trace \| waterfall \| ... 2 more) (repeatable) |
 
 ## `ht-cli instant-checks list-device`
 

@@ -60,7 +60,7 @@ func init() {
 			{Name: "from", Flag: "from", In: "query", Type: "integer", Help: "The start of the time window, in Unix seconds."},
 			{Name: "limit", Flag: "limit", In: "query", Type: "integer", Help: "Rows to return."},
 			{Name: "to", Flag: "to", In: "query", Type: "integer", Help: "The end of the time window, in Unix seconds."},
-			{Name: "type", Flag: "type", In: "query", Type: "array", Items: "string", Enum: []string{"crawl", "dns", "dnsbl", "http", "ping", "port", "rusRegBL", "trace", "waterfall", "webRisk", "whois"}, Explode: true, Help: "v2 type tokens. Repeatable and comma-separable."},
+			{Name: "type", Flag: "type", In: "query", Type: "array", Items: "string", Enum: []string{"crawl", "dns", "dnsbl", "http", "ping", "port", "trace", "waterfall", "webRisk", "whois"}, Explode: true, Help: "v2 type tokens. Repeatable and comma-separable."},
 		},
 		QueryPath: "/check/q",
 		Paged:     true,

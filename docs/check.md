@@ -20,6 +20,7 @@ Start an instant check, and follow it to its result.
   ht-cli check run https://www.host-tracker.com --wait
   ht-cli check run example.com --type ping --country de --country us --wait
   ht-cli check run example.com:443 --type port --pool premium
+  ht-cli check run https://example.com --strict-tls --wait
 
 Without --wait the command prints the 202 receipt, whose id is what
 ht-cli instant-checks get <db-id> <id> reads later. With --wait it polls
@@ -35,6 +36,7 @@ reach, and the flags then fill in what it left out.
 | `--idempotency-key` | string | replay key for this run (default: a fresh one per call) |
 | `--json` | string | request body: inline JSON, @file, or - for standard input |
 | `--pool` | stringArray | monitoring-location pool to run from (repeatable) |
+| `--strict-tls` | bool | validate the TLS handshake strictly (untrusted root, incomplete chain, name mismatch and self-signed certificates fail); http checks only |
 | `--type` | string | which kind of check to run (default http) |
 | `--wait-timeout` | duration | how long --wait keeps polling |
 | `--wait` | bool | follow the check until it finishes and print the result |

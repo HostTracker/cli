@@ -31,6 +31,7 @@ func newCheckRunCommand(opts *htcli.Options) *cobra.Command {
 		countries  []string
 		cities     []string
 		bodySource string
+		strictTls  bool
 		wait       bool
 		waitFor    time.Duration
 		key        string
@@ -44,6 +45,7 @@ func newCheckRunCommand(opts *htcli.Options) *cobra.Command {
   ht-cli check run https://www.host-tracker.com --wait
   ht-cli check run example.com --type ping --country de --country us --wait
   ht-cli check run example.com:443 --type port --pool premium
+  ht-cli check run https://example.com --strict-tls --wait
 
 Without --wait the command prints the 202 receipt, whose id is what
 ht-cli instant-checks get <db-id> <id> reads later. With --wait it polls
@@ -85,6 +87,9 @@ reach, and the flags then fill in what it left out.`,
 			if clause := locationClause(countries, cities); clause != nil {
 				request.Locations = &[]hosttracker.IcLocationClause{*clause}
 			}
+			if strictTls {
+				request.StrictTls = &strictTls
+			}
 
 			if !wait {
 				params := &hosttracker.CreateInstantCheckParams{}
@@ -120,6 +125,7 @@ reach, and the flags then fill in what it left out.`,
 	flags.StringArrayVar(&pools, "pool", nil, "monitoring-location pool to run from (repeatable)")
 	flags.StringArrayVar(&countries, "country", nil, "run only from locations in this country (repeatable)")
 	flags.StringArrayVar(&cities, "city", nil, "run only from locations in this city (repeatable)")
+	flags.BoolVar(&strictTls, "strict-tls", false, "validate the TLS handshake strictly (untrusted root, incomplete chain, name mismatch and self-signed certificates fail); http checks only")
 	flags.StringVar(&bodySource, "json", "", "request body: inline JSON, @file, or - for standard input")
 	flags.BoolVar(&wait, "wait", false, "follow the check until it finishes and print the result")
 	flags.DurationVar(&waitFor, "wait-timeout", 2*time.Minute, "how long --wait keeps polling")

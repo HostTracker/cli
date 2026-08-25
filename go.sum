@@ -1,5 +1,5 @@
-github.com/HostTracker/hosttracker-sdk-go v0.1.0 h1:A4fxepsRF+KFZPt3vlNA4ooAyaOtCJU3MUR3xTrMuBQ=
-github.com/HostTracker/hosttracker-sdk-go v0.1.0/go.mod h1:spHcxMZOVWSmLmOwxFqeH9DyMcDoGieDW1imJnkrVDk=
+github.com/HostTracker/hosttracker-sdk-go v0.2.0 h1:qofDI72egTk3Ml6pJVX8a9+nB8yEd29Kn7gx5Adb/EE=
+github.com/HostTracker/hosttracker-sdk-go v0.2.0/go.mod h1:spHcxMZOVWSmLmOwxFqeH9DyMcDoGieDW1imJnkrVDk=
 github.com/RaveNoX/go-jsoncommentstrip v1.0.0/go.mod h1:78ihd09MekBnJnxpICcwzCMzGrKSKYe4AqU6PDYYpjk=
 github.com/apapsch/go-jsonmerge/v2 v2.0.0 h1:axGnT1gRIfimI7gJifB699GoE/oq+F2MU7Dml6nw9rQ=
 github.com/apapsch/go-jsonmerge/v2 v2.0.0/go.mod h1:lvDnEdqiQrp0O42VQGgmlKpxL1AP2+08jFMw88y4klk=
